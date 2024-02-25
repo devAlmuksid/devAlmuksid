@@ -1,0 +1,216 @@
+urls.py
+
+from django.urls import path
+from .import views
+
+urlpatterns = [
+    path('create', views.create, name='create')
+]
+
+__________________________________________________________________________________________________
+
+
+views.py
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import create_model
+from django.http import HttpResponseRedirect
+
+# Create your views here.
+def create(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        image = request.FILES.get('image')
+        address = request.POST.get('address')
+        phone = request.POST.get('phone')
+        gender = request.POST.get('gender')
+        religion = request.POST.get('religion')
+        created_at = request.POST.get('created_at')
+        date_of_birth = request.POST.get('date_of_birth')
+        try:
+            if not name:
+                messages.error(request, " Submit your name ")
+            elif not email:
+                messages.error(request, " Submit your email ")
+            elif not address:
+                messages.error(request, " Submit your address ")
+            elif not gender:
+                messages.error(request, " Submit your gender ")
+            if not phone:
+                message.error(request, 'Submit your number')
+            elif not religion:
+                messages.error(request, " Submit your religion ")
+            elif not date_of_birth:
+                messages.error(request, " Submit your date of birth ")
+            else:
+
+                if create_model.objects.filter(name=name).exists():
+                    messages.warning(request, "Profile Already Exixts.")
+                    return HttpResponseRedirect('create')
+                else:
+                    if name:
+                        number = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+                        for i in name:
+                            if i in number:
+                                messages.warning(request, "Enter Your Currect Name")
+                                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+                            else:
+
+                                if image:
+                                    data_created = create_model.objects.create(name=name, email=email, image=image, address=address, phone=phone, gender=gender, religion=religion, created_at=created_at, date_of_birth=date_of_birth)
+                                    data_created.save()
+                                    messages.success(request, "Profile Successfully Created.")
+                                    return redirect('home')
+                                else:
+                                    data_created = create_model.objects.create(name=name, email=email, address=address, phone=phone, gender=gender, religion=religion, created_at=created_at, date_of_birth=date_of_birth)
+                                    data_created.save()
+                                    messages.success(request, "Profile Successfully Created.")
+                                    return redirect('home')
+
+        except:
+            messages.error(request, " Something wants error.")
+            #return HttpResponseRedirect('create')
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
+    return render(request, 'create/create.html')
+
+_____________________________________________________________________________________________________________________________
+
+
+models.py
+
+from django.db import models
+
+# Create your models here.
+class create_model(models.Model):
+    name = models.CharField(max_length=35)
+    email = models.EmailField(max_length=254)
+    image = models.ImageField(upload_to='profile_pic', default='demo.jpg')
+    address = models.TextField(max_length=150)
+    phone = models.PositiveIntegerField()
+    GENDER = (
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Others', 'Others'),
+    )
+    gender = models.CharField(max_length=8, choices=GENDER)
+    RELIGION =(
+        ('Islam', 'Islam'),
+        ('Yehudi', 'Yehudi'),
+        ('Christian', 'Christian')
+    )
+    religion = models.CharField(max_length=10, choices=RELIGION)
+    created_at = models.DateTimeField(auto_now_add=True)
+    date_of_birth = models.TextField(max_length=10)
+
+    def __str__(self):
+        return self.name
+_______________________________________________________________________
+
+admin.py
+
+from django.contrib import admin
+from .models import create_model
+
+# Register your models here.
+admin.site.register(create_model)
+________________________________________________________________________
+
+create.html
+
+{% extends "../index.html" %}{% load static %}
+{% block title %} Create Page {% endblock title %}  
+{% block css %}
+<link href="" rel="stylesheet">
+{% endblock css %}
+
+{% block content %}
+
+
+<div class="w-50 p-3 " style="margin: auto;">
+    {% if messages %}
+    <ul class="messages" style="padding: 0;">
+        {% for message in messages %}
+        <li class="text-danger" style="list-style-type: none;" >{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+<form action="" method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Name</label>
+    <input type="text" class="form-control" name = 'name'>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Email address</label>
+    <input type="email" class="form-control" placeholder="name@example.com" name = 'email'>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Image</label>
+    <input type="file" class="form-control" name = 'image'>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Address</label>
+    <textarea class="form-control" rows="3" name='address'></textarea>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Phone Number</label>
+    <input type="number" class="form-control" name = 'phone'>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Gender</label>
+    <select class="form-select" name="gender">
+        <option value="1">Male</option>
+        <option value="2">Female</option>
+        <option value="3">Others</option>
+      </select>  
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Religion</label>
+    <select class="form-select" name="religion">
+        <option value="1">Islam</option>
+        <option value="2">Yehudi</option>
+        <option value="3">Christian</option>
+      </select>  
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Date Of Birth</label>
+    <input type="date" class="form-control" name = 'date_of_birth'>
+  </div>
+
+  <input class="btn btn-success" type="submit" value="Submit">
+</form>
+</div>
+
+{% endblock content %}
+    
+
+
+
+
+                                                          
+
+
+
+
+
+
+
+
+
+
+                                                            
+                                                          
+
+
+                                                            
+
+                                          
+
+                                          
+  
+
+
+                                      
