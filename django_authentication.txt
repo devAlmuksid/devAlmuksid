@@ -1,0 +1,177 @@
+# mysite
+## project/urls.py~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+path('', include('users.urls')),
+_______________________________________________________________________________________________________
+
+# app
+## users/urls.py~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.urls import path
+from django.contrib.auth import views as auth_view
+from .import views
+
+app_name = 'user'
+urlpatterns = [
+    path('create/', views.create, name='create'),
+    # login
+    path('login/', auth_view.LoginView.as_view(template_name='users/login.html'), name='login'),
+    # Logout
+    path('logout/', auth_view.LogoutView.as_view(template_name='users/logout.html'), name='logout'),
+    # Profile
+    path('profile/', views.profilepage, name='profile')
+]
+_______________________________________________________________________________________________________
+
+## views.py~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.forms import UserCreationForm
+from .forms import user_form
+from django.contrib import messages
+# from .models import profile_mdl
+
+# Create your views here.
+# Create User
+def create(request):
+    if request.method == 'POST':
+        form = user_form(request.POST or none)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            form.save()
+            messages.success(request, f"Welcome {username}, Your account successfully created")
+            return redirect('food:index')
+    else:
+        form = user_form()
+
+    return render(request, 'users/create.html', {'form':form})
+
+# User Profile 
+@login_required
+def profilepage(request):
+    return render(request, 'users/profile.html')
+_______________________________________________________________________________________________________
+
+
+forms.py~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+
+class user_form(UserCreationForm):
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    email = forms.EmailField()
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
+_______________________________________________________________________________________________________
+
+
+##models.py~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.db import models
+from django.contrib.auth.models import User
+
+# Create your models here.
+#You have must be used to Profile class name like Class Profile or It will doesn't working
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(default='profilepic.jpg', upload_to='profile_pictures')
+    address = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.user.username
+_______________________________________________________________________________________________________
+
+
+##admin.py~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.contrib import admin
+from .models import Profile
+# Register your models here.
+
+class usermodel(admin.ModelAdmin):
+    list_display=['user', 'image', 'address']
+admin.site.register(Profile, usermodel)
+_______________________________________________________________________________________________________
+
+
+
+## Create.html~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{% extends 'base.html' %}
+{% block title %}{% endblock title %}
+{% block css %}
+    <link href="" rel="stylesheet" >
+{% endblock css %}
+
+{% block content %}
+
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <input type="submit" value="Create">
+</form>
+
+{% endblock content %}
+_______________________________________________________________________________________________________
+
+
+
+## Login.html~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{% extends 'base.html' %}
+{% block title %}{% endblock title %}
+{% block css %}
+    <link href="" rel="stylesheet" >
+{% endblock css %}
+
+{% block content %}
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <input type="submit" value="Login">
+</form>
+{% endblock content %}
+_______________________________________________________________________________________________________
+
+
+
+## Logout.html~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{% extends 'base.html' %}
+{% block title %}{% endblock title %}
+{% block css %}
+    <link href="" rel="stylesheet" >
+{% endblock css %}
+
+{% block content %}
+<form action="" method="POST">
+   
+    <p>Your accoutn hasbeen successfully loggedout</p>
+    <input type="submit" value="Logout">
+    {% csrf_token %}
+</form>
+{% endblock content %}
+_______________________________________________________________________________________________________
+
+
+
+## profile.html~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<p>{{ user.username }}</p>
+<img src="{{user.profile.image.url}}" style='width: 300px;'>
+<p> {{user.profile.address}} </p>
+_______________________________________________________________________________________________________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
