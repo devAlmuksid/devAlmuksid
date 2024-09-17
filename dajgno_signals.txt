@@ -1,4 +1,5 @@
-
+# Why signals use?
+# > Because, When we create an account this time our have expectation also create a profile. So signals help us create a profile when we create an account. 
 signals.py~~~~~~~~~~~~~~~
 ----------
 from django.db.models.signals import post_save
