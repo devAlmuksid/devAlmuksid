@@ -1,0 +1,83 @@
+# urls.py  -app  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.urls import include, path
+from rest_framework import routers
+from rest_framework.routers import SimpleRouter 
+from movie.views import MovieViewSet, ActionsViewSet, AnimationViewSet
+
+# Initialize SimpleRouter
+router = routers.SimpleRouter()
+router.register('movies', MovieViewSet, basename='movie')  # basename = 'movie'
+router.register('action', ActionsViewSet, basename='action')  # basename = 'action'
+router.register('animation', AnimationViewSet, basename='animation')
+
+# Define URL patterns
+urlpatterns = [
+    path('', include(router.urls)),
+]
+_________________________________________________________________________________________
+
+
+views.py  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.shortcuts import render
+from .models import MovieData
+from .serializers import movie_serializer
+from rest_framework import viewsets
+
+class MovieViewSet(viewsets.ModelViewSet):
+
+    queryset = MovieData.objects.all()
+    serializer_class = movie_serializer
+
+class ActionsViewSet(viewsets.ModelViewSet):
+    queryset = MovieData.objects.filter(typ='action')
+    serializer_class = movie_serializer
+
+class AnimationViewSet(viewsets.ModelViewSet):
+    queryset = MovieData.objects.filter(typ='animation')
+    serializer_class = movie_serializer
+
+_________________________________________________________________________________________
+
+
+
+models.py  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.db import models
+
+# Create your models here.
+class MovieData(models.Model):
+
+    def __str__(self):
+        return self.name
+    
+    name = models.CharField(max_length=100)
+    duration = models.FloatField()
+    rating = models.FloatField()
+    typ = models.CharField(max_length=100, default='action')
+    image = models.ImageField(upload_to='movie', default='movie/moviedef.jpg')
+_________________________________________________________________________________________
+
+
+
+admin.py  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from django.contrib import admin
+from .models import MovieData 
+
+# Register your models here.
+class movie_admin(admin.ModelAdmin):
+    list_display = ['name', 'duration', 'rating']
+admin.site.register(MovieData, movie_admin)
+_________________________________________________________________________________________
+
+
+
+serializers.py  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from rest_framework import serializers
+from .models import MovieData
+
+class movie_serializer(serializers.ModelSerializer):
+    image = serializers.ImageField(max_length=None, use_url=True)
+    class Meta:
+        model = MovieData
+        fields = ['name', 'duration', 'rating', 'typ', 'image']
+
+
